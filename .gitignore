@@ -16,7 +16,8 @@ venv/
 # Data & artifacts
 data/funsd/
 data/raw/
-artifacts/
+artifacts/**
+!artifacts/.gitkeep
 *.pt
 *.bin
 *.safetensors
