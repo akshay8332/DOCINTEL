@@ -187,9 +187,9 @@ def download_funsd(
         return dest
 
     zip_path = dest / "dataset.zip"
-    print(f"Downloading FUNSD from {url} → {zip_path}")
+    print(f"Downloading FUNSD from {url} -> {zip_path}")
     urlretrieve(url, zip_path)
-    print(f"Extracting {zip_path} …")
+    print(f"Extracting {zip_path} ...")
     with zipfile.ZipFile(zip_path, "r") as zf:
         zf.extractall(dest)
     # Some mirrors nest an extra folder; normalize if needed

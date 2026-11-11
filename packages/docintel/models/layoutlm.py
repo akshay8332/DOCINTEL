@@ -102,6 +102,8 @@ def build_trainer_args(
     seed: int = 42,
     dataloader_num_workers: int = 0,
 ) -> Any:
+    import inspect
+
     from transformers import TrainingArguments
 
     kwargs: dict[str, Any] = dict(
@@ -112,7 +114,6 @@ def build_trainer_args(
         gradient_accumulation_steps=gradient_accumulation_steps,
         learning_rate=learning_rate,
         weight_decay=weight_decay,
-        warmup_ratio=warmup_ratio,
         logging_steps=logging_steps,
         eval_strategy=eval_strategy,
         save_strategy=save_strategy,
@@ -125,6 +126,17 @@ def build_trainer_args(
     )
     if max_steps is not None and max_steps > 0:
         kwargs["max_steps"] = max_steps
+
+    # transformers>=5 removed warmup_ratio; map to warmup_steps when needed.
+    ta_params = inspect.signature(TrainingArguments.__init__).parameters
+    if "warmup_ratio" in ta_params:
+        kwargs["warmup_ratio"] = warmup_ratio
+    else:
+        if max_steps is not None and max_steps > 0 and warmup_ratio > 0:
+            kwargs["warmup_steps"] = max(1, int(warmup_ratio * max_steps))
+        else:
+            kwargs["warmup_steps"] = 0
+
     return TrainingArguments(**kwargs)
 
 
@@ -206,14 +218,26 @@ def infer_spans(
 
     word_ids = None
     try:
-        # Re-tokenize to get word_ids alignment
-        tok = bundle.processor(
-            example.words,
-            boxes=example.boxes,
-            truncation=True,
-            padding="max_length",
-            max_length=max_length,
-        )
+        # Re-tokenize to get word_ids alignment (v3 processor needs images first).
+        from docintel.data.transforms import _load_example_image, _processor_expects_images
+
+        if _processor_expects_images(bundle.processor):
+            tok = bundle.processor(
+                _load_example_image(example),
+                example.words,
+                boxes=example.boxes,
+                truncation=True,
+                padding="max_length",
+                max_length=max_length,
+            )
+        else:
+            tok = bundle.processor(
+                example.words,
+                boxes=example.boxes,
+                truncation=True,
+                padding="max_length",
+                max_length=max_length,
+            )
         word_ids = tok.word_ids()
     except Exception:
         word_ids = None

@@ -83,6 +83,11 @@ def main(argv: list[str] | None = None) -> int:
         print("No FUNSD train docs found.", file=sys.stderr)
         return 1
 
+    # Smoke: encode a tiny slice so CPU runs finish quickly.
+    if args.smoke:
+        train_docs = train_docs[:4]
+        test_docs = test_docs[:2]
+
     train_examples = prepare_examples(train_docs, label_list=cfg.label_list)
     eval_examples = prepare_examples(test_docs, label_list=cfg.label_list)
 
@@ -106,14 +111,13 @@ def main(argv: list[str] | None = None) -> int:
 
     # Prefer datasets.Dataset for Trainer
     from datasets import Dataset
-    from transformers import Trainer, DataCollatorForTokenClassification
+    from transformers import Trainer, default_data_collator
 
     train_ds = Dataset.from_list(_encode_many(train_examples))
     eval_ds = Dataset.from_list(_encode_many(eval_examples)) if eval_examples else None
 
-    # Drop columns Trainer shouldn't pass when using custom boxes
-    # Keep tensors only via collator
-    data_collator = DataCollatorForTokenClassification(tokenizer=bundle.processor)
+    # Features are already padded to max_length (incl. bbox + pixel_values).
+    data_collator = default_data_collator
 
     training_args = build_trainer_args(
         cfg.output_dir,
@@ -171,8 +175,8 @@ def main(argv: list[str] | None = None) -> int:
     if eval_ds is not None and cfg.eval_strategy != "no":
         payload["eval"] = trainer.evaluate()
     metrics_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f"Saved checkpoint → {cfg.output_dir}")
-    print(f"Metrics → {metrics_path}")
+    print(f"Saved checkpoint -> {cfg.output_dir}")
+    print(f"Metrics -> {metrics_path}")
     return 0
 
 
