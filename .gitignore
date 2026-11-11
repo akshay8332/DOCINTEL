@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg
+
+# Data & artifacts
+data/funsd/
+data/raw/
+artifacts/
+*.pt
+*.bin
+*.safetensors
+checkpoints/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Node (monitor app)
+apps/monitor/node_modules/
+apps/monitor/dist/
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,24 @@
+# Application settings (Stage 2+)
+api:
+  host: 127.0.0.1
+  port: 8080
+  title: DocIntel Extraction API
+  version: "0.1.0"
+
+storage:
+  backend: local  # local | s3
+  root: ./data/uploads
+
+database:
+  url: sqlite:///./artifacts/docintel.db
+
+model:
+  checkpoint_dir: ./artifacts/checkpoints/funsd-layoutlm
+  device: auto
+
+review:
+  confidence_threshold: 0.75
+
+preprocess:
+  dpi: 200
+  ocr_engine: stub  # Stage 2: tesseract / azure / etc.

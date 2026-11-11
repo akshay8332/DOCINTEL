@@ -1,0 +1,13 @@
+# Sketch — Stage 3 training / job worker image (GPU tag optional)
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY packages ./packages
+COPY configs ./configs
+COPY scripts ./scripts
+
+RUN pip install --no-cache-dir -e .
+
+# CPU default; for GPU use a pytorch CUDA base image in Stage 3
+CMD ["python", "-m", "docintel.workers.train_funsd", "--help"]
