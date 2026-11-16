@@ -1,0 +1,34 @@
+# Full DocILE training split. Same recipe as the 200-page run.
+# Do not point output_dir at invoice-layoutlm-200 or docile_multilabel_200.
+model_name: microsoft/layoutlmv3-base
+data_dir: ./data/docile
+output_dir: ./artifacts/checkpoints/docile_multilabel_full
+softmax_report: ./artifacts/diagnostics/phase2-report.json
+run_name: multilabel-full
+
+# null loads every page in data/docile/train.json. The 200-page pilot stays untouched.
+train_limit: null
+eval_limit: 20
+report_limit: 100
+max_seq_length: 512
+encoded_cache: true
+
+batch_size: 2
+gradient_accumulation_steps: 1
+epochs: 10
+learning_rate: 2.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.0
+max_grad_norm: 1.0
+patience: 2
+min_delta: 0.0
+seed: 42
+resume: true
+
+logging_steps: 10
+threshold: 0.5
+spatial_gap: 30
+weights_checkpoint: ./artifacts/checkpoints/docile_multilabel_200_baseline
+grouping: line-block-v2
+
+docile_src: C:/Users/DELL/Downloads/docile-main/docile-main

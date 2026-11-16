@@ -1,0 +1,56 @@
+# Colab GPU run of the full DocILE training split.
+# Training logic is experiments/multilabel/train.py. This file only selects that run.
+#
+# Frozen and never written:
+#   artifacts/checkpoints/invoice-layoutlm-200
+#   artifacts/checkpoints/docile_multilabel_200
+#   artifacts/checkpoints/docile_multilabel_200_baseline
+#
+# Unchanged from the 200-page recipe:
+#   nine independent sigmoid outputs, masked BCEWithLogitsLoss, original annotations,
+#   DocILE OCR and preprocessing, token alignment, line-block-v2, threshold 0.5,
+#   learning rate 2e-5, batch size 2, weight decay 0.01, max 10 epochs, patience 2, seed 42.
+#   Early stopping still uses the first 20 validation pages, which is how epoch 8 was chosen.
+#   The published comparison uses the same 100 validation pages.
+#
+# Added without changing the weight update:
+#   A constant learning-rate scheduler. warmup_ratio stays 0, so the learning rate stays 2e-5.
+#   Optimizer, scheduler, and RNG files are stored beside model.pt so a run can resume.
+#   Encoded pages are cached on disk. The tensors are the same ones the 200-page run used.
+#   Batch size stays 2. Increase it only after a GPU run shows memory left over.
+
+model_name: microsoft/layoutlmv3-base
+data_dir: /content/docile
+output_dir: ./artifacts/checkpoints/docile_multilabel_full_5180
+scratch_dir: /content/checkpoints/docile_multilabel_full_5180
+persistent_dir: /content/drive/MyDrive/docintel/artifacts/checkpoints/docile_multilabel_full_5180
+softmax_report: ./artifacts/diagnostics/phase2-report.json
+run_name: multilabel-full-5180
+
+train_limit: null
+eval_limit: 20
+report_limit: 100
+max_seq_length: 512
+encoded_cache: true
+
+batch_size: 2
+gradient_accumulation_steps: 1
+epochs: 10
+learning_rate: 2.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.0
+max_grad_norm: 1.0
+patience: 2
+min_delta: 0.0
+seed: 42
+resume: true
+require_gpu: true
+require_persistent: true
+
+logging_steps: 10
+threshold: 0.5
+spatial_gap: 30
+weights_checkpoint: ./artifacts/checkpoints/docile_multilabel_200_baseline
+grouping: line-block-v2
+
+docile_src: /content/docile-main

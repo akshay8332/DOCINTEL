@@ -1,0 +1,29 @@
+# Independent of the softmax invoice run. Do not point output_dir at that checkpoint.
+model_name: microsoft/layoutlmv3-base
+data_dir: ./data/docile
+output_dir: ./artifacts/checkpoints/docile_multilabel_200
+softmax_report: ./artifacts/diagnostics/phase2-report.json
+
+train_limit: 200
+eval_limit: 20
+max_seq_length: 512
+
+batch_size: 2
+gradient_accumulation_steps: 1
+epochs: 10
+learning_rate: 2.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.0
+max_grad_norm: 1.0
+patience: 2
+min_delta: 0.0
+seed: 42
+
+logging_steps: 10
+threshold: 0.5
+spatial_gap: 30
+# Post-processing is separate from the epoch-8 weights.
+weights_checkpoint: ./artifacts/checkpoints/docile_multilabel_200_baseline
+grouping: line-block-v2
+
+docile_src: C:/Users/DELL/Downloads/docile-main/docile-main

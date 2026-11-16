@@ -6,6 +6,7 @@ __pycache__/
 dist/
 build/
 .venv/
+.venv-paddle/
 venv/
 .env
 .mypy_cache/
@@ -16,6 +17,7 @@ venv/
 # Data & artifacts
 data/funsd/
 data/raw/
+data/docile/
 artifacts/**
 !artifacts/.gitkeep
 *.pt

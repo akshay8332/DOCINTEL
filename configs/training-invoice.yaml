@@ -1,0 +1,45 @@
+# LayoutLMv3 fine-tune on a DocILE invoice pilot (CPU-friendly)
+model_name: microsoft/layoutlmv3-base
+fallback_model_name: microsoft/layoutlmv2-base-uncased
+prefer_v3: true
+
+data_dir: ./data/docile
+output_dir: ./artifacts/checkpoints/invoice-layoutlm-200
+max_seq_length: 512
+
+per_device_train_batch_size: 1
+per_device_eval_batch_size: 1
+gradient_accumulation_steps: 1
+learning_rate: 5.0e-5
+weight_decay: 0.01
+num_train_epochs: 1
+max_steps: null
+warmup_ratio: 0.1
+logging_steps: 20
+eval_strategy: epoch
+save_strategy: epoch
+save_total_limit: 1
+seed: 42
+fp16: false
+dataloader_num_workers: 0
+
+label_list:
+  - "O"
+  - "B-document_id"
+  - "I-document_id"
+  - "B-date_issue"
+  - "I-date_issue"
+  - "B-date_due"
+  - "I-date_due"
+  - "B-vendor_name"
+  - "I-vendor_name"
+  - "B-customer_billing_name"
+  - "I-customer_billing_name"
+  - "B-vendor_address"
+  - "I-vendor_address"
+  - "B-customer_billing_address"
+  - "I-customer_billing_address"
+  - "B-amount_due"
+  - "I-amount_due"
+  - "B-amount_total_gross"
+  - "I-amount_total_gross"
