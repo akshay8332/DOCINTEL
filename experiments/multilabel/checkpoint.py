@@ -13,6 +13,7 @@ FROZEN_CHECKPOINT_DIRS = (
     "invoice-layoutlm-200",
     "docile_multilabel_200",
     "docile_multilabel_200_baseline",
+    "docile_multilabel_full_5180_epoch3",
 )
 
 FROZEN_DIAGNOSTICS = frozenset(
@@ -31,6 +32,9 @@ FROZEN_DIAGNOSTICS = frozenset(
         "invoice-200.json",
         "multilabel-word-probe.json",
         "multilabel-word-scores-100.jsonl",
+        "multilabel-full-5180-freeze.json",
+        "multilabel-full-5180-per-field-summary.json",
+        "multilabel-full-5180-test-predictions.json",
     }
 )
 

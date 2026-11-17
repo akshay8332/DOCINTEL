@@ -187,6 +187,7 @@ def test_frozen_checkpoints_and_diagnostics_are_rejected(tmp_path):
         "invoice-layoutlm-200",
         "docile_multilabel_200",
         "docile_multilabel_200_baseline",
+        "docile_multilabel_full_5180_epoch3",
     ):
         with pytest.raises(RuntimeError, match="frozen"):
             assert_output_allowed(tmp_path / "artifacts" / "checkpoints" / name / "best")
