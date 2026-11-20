@@ -1,0 +1,78 @@
+# Party and address fine-tune for Kaggle.
+#
+# Run: python scripts/train_party_experiment.py
+# Notebook: notebooks/kaggle_party_experiment.ipynb
+#
+# Do not pass this file to experiments/multilabel/train.py or scripts/train_colab.py.
+# Those entry points always load microsoft/layoutlmv3-base and a new Linear head.
+# They ignore init_checkpoint and the focused document list. This file also omits
+# docile_src, so the production trainer stops before a from-scratch run.
+#
+# Frozen and never written:
+#   artifacts/checkpoints/epoch-3
+#   artifacts/checkpoints/docile_multilabel_full_5180
+#   artifacts/checkpoints/invoice-layoutlm-200
+#   artifacts/checkpoints/docile_multilabel_200
+#   artifacts/checkpoints/docile_multilabel_200_baseline
+#   configs/colab_full_training.yaml
+#   notebooks/colab_full_training.ipynb
+#
+# Unchanged from the epoch-3 recipe:
+#   nine independent sigmoid outputs, unweighted masked BCE-with-logits,
+#   official DocILE annotations, DocILE OCR, first-subword alignment,
+#   line-block-v2, threshold 0.50, seed 42.
+#   Early stopping still scores the first 20 validation pages.
+#   The published comparison still uses the same 100 validation pages.
+#   Validation pages are scored and never used for gradients.
+#
+# The one training change is the document mix. Both parties already appear
+# together in 4,746 of 5,158 party-bearing training documents, so that pattern
+# is not upsampled. The focused list keeps a document when a training page has
+# a heading above an address, two address columns, or an attention line inside
+# a customer billing address.
+
+experiment: party-address-finetune
+status: ready_for_kaggle
+runtime: kaggle
+
+model_name: microsoft/layoutlmv3-base
+init_checkpoint: ./artifacts/checkpoints/epoch-3
+init_mode: read_only
+output_dir: ./artifacts/checkpoints/docile_party_experiment
+run_name: party-address-finetune
+
+data_dir: /kaggle/input/docile
+train_manifest: ./configs/party_experiment_focused_ids.json
+train_manifest_key: document_ids
+train_documents: 2519
+eval_limit: 20
+report_limit: 100
+max_seq_length: 512
+encoded_cache: true
+
+batch_size: 2
+gradient_accumulation_steps: 1
+epochs: 3
+learning_rate: 5.0e-6
+weight_decay: 0.01
+warmup_ratio: 0.0
+max_grad_norm: 1.0
+patience: 2
+min_delta: 0.0
+seed: 42
+resume: false
+require_gpu: true
+
+loss: masked_bce_with_logits
+class_weights: none
+threshold: 0.5
+grouping: line-block-v2
+
+# Adopt a checkpoint only when all of these hold on the labelled 100-page set.
+success:
+  raw_exact_above: 61
+  corrected_exact_above: 72
+  customer_raw_exact_at_least: 28
+  customer_gold: 70
+  false_positive_words_at_most: 171
+  gold: 162

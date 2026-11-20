@@ -154,14 +154,22 @@ def iter_docile_pages(
     *,
     limit: int | None = None,
     image_dir: str | Path | None = None,
+    document_ids: set[str] | None = None,
 ):
-    """Yield page documents one at a time. ``limit`` None yields the whole split."""
+    """Yield page documents one at a time. ``limit`` None yields the whole split.
+
+    ``document_ids`` keeps official ids before any PDF is rendered. ``None``
+    keeps the full split, which is what the production trainer uses.
+    """
     root = Path(root)
     images = Path(image_dir) if image_dir else root / "page_images"
+    allowed = None if document_ids is None else set(document_ids)
     count = 0
     for doc_id in _split_ids(root, split):
         if limit is not None and count >= limit:
             break
+        if allowed is not None and doc_id not in allowed:
+            continue
         ocr_path = root / "ocr" / f"{doc_id}.json"
         ann_path = root / "annotations" / f"{doc_id}.json"
         pdf_path = root / "pdfs" / f"{doc_id}.pdf"
