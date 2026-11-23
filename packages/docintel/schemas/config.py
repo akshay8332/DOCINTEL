@@ -74,3 +74,8 @@ class AppSettings(BaseSettings):
     db_url: str = "sqlite:///./artifacts/docintel.db"
     confidence_threshold: float = 0.75
     storage_root: Path = Path("./data/uploads")
+    invoice_db_url: str = "sqlite:///./data/app/docintel.db"
+    inference_mode: str = "auto"
+    frozen_checkpoint: str = "epoch-3"
+    max_upload_bytes: int = 20 * 1024 * 1024
+    process_inline: bool = False

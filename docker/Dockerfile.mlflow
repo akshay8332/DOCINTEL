@@ -1,0 +1,10 @@
+# Local tracking server. It does not train and it does not load the checkpoint.
+FROM python:3.11-slim-bookworm
+
+RUN pip install --no-cache-dir "mlflow>=2.22,<3"
+# MLflow 2.22 cannot import the SQLAlchemy 2.1 pool class that pip otherwise selects.
+RUN pip install --no-cache-dir "sqlalchemy>=2.0,<2.1"
+
+EXPOSE 5000
+
+CMD ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "sqlite:////mlflow/mlflow.db", "--default-artifact-root", "/mlflow/artifacts"]

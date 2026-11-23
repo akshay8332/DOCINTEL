@@ -2,6 +2,8 @@
 
 Local-first **document intelligence** pipeline: FUNSD → LayoutLM fine-tune → extraction API → Vue monitor.
 
+The invoice application (DOCILE) is documented in [docs/PROJECT_ASSESSMENT.md](docs/PROJECT_ASSESSMENT.md) and [docs/LOCAL_STARTUP.md](docs/LOCAL_STARTUP.md). Start the API with `uvicorn docintel.api.main:app` and the UI with `npm run dev` inside `apps/web`.
+
 Stage 1 (this scaffold) focuses on **FUNSD download/parse**, **LayoutLMv3** training (v2 fallback), and entity F1 metrics. Later stages are stubbed under `services/`, `api/`, and `apps/monitor`.
 
 ## Requirements

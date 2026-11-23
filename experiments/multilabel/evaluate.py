@@ -17,10 +17,21 @@ from multilabel.model import MultiLabelLayoutLM
 
 
 def load_multilabel(checkpoint: Path, device: str) -> tuple[MultiLabelLayoutLM, object, dict]:
-    from transformers import LayoutLMv3Model, LayoutLMv3Processor
+    from transformers import LayoutLMv3Config, LayoutLMv3Model, LayoutLMv3Processor
 
     payload = torch.load(checkpoint / "model.pt", map_location=device, weights_only=False)
-    encoder = LayoutLMv3Model.from_pretrained(payload["model_name"])
+    # The frozen weights are already in model.pt. Building an empty base model
+    # from the public config avoids downloading those weights a second time.
+    config_file = checkpoint / "config.json"
+    if not config_file.is_file():
+        if payload.get("model_name") != "microsoft/layoutlmv3-base":
+            config = LayoutLMv3Config.from_pretrained(payload["model_name"])
+        else:
+            config_file = Path(__file__).resolve().parent / "layoutlmv3_base_config.json"
+            config = LayoutLMv3Config.from_json_file(str(config_file))
+    else:
+        config = LayoutLMv3Config.from_pretrained(checkpoint)
+    encoder = LayoutLMv3Model(config)
     model = MultiLabelLayoutLM(encoder, num_labels=len(payload["field_names"]))
     model.encoder.load_state_dict(payload["encoder"])
     model.classifier.load_state_dict(payload["classifier"])

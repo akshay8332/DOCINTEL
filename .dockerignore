@@ -1,0 +1,30 @@
+.git
+.github
+**/.venv
+**/.venv-*
+**/venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/*.egg-info
+
+# Frontend dependencies are installed inside the image.
+**/node_modules
+apps/monitor/dist
+
+# Datasets, checkpoints, and uploads are mounted at run time.
+data
+artifacts
+kaggle_upload
+**/*.pt
+**/*.bin
+**/*.safetensors
+
+.env
+*.log
+logs
+notebooks
+terminals
+agent-transcripts

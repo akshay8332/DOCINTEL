@@ -1,0 +1,77 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8080:8080"
+    environment:
+      DOCINTEL_API_HOST: 0.0.0.0
+      DOCINTEL_API_PORT: "8080"
+      DOCINTEL_DEVICE: cpu
+      DOCINTEL_INFERENCE_MODE: auto
+      DOCINTEL_FROZEN_CHECKPOINT: epoch-3
+      DOCINTEL_CHECKPOINT_DIR: /models
+      DOCINTEL_STORAGE_ROOT: /data/uploads
+      DOCINTEL_INVOICE_DB_URL: sqlite:////data/app/docintel.db
+      DOCINTEL_DATA_DIR: /data/docile
+      DOCINTEL_DOCTR_PYTHON: /usr/local/bin/python
+      DOCINTEL_PROCESS_INLINE: "false"
+    volumes:
+      - ./artifacts/checkpoints/epoch-3:/models/epoch-3:ro
+      - ./data/docile:/data/docile:ro
+      - app-data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+      GIT_PYTHON_REFRESH: quiet
+      DOCINTEL_CHECKPOINT_PATH: /checkpoint
+      DOCINTEL_PARTY_CHECKPOINT_PATH: /party-checkpoint
+    volumes:
+      - ./artifacts/mlflow:/mlflow
+      - ./scripts/register_epoch3_benchmark.py:/register.py:ro
+      - ./artifacts/checkpoints/epoch-3:/checkpoint:ro
+      - ./artifacts/checkpoints/docile_party_experiment:/party-checkpoint:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+
+volumes:
+  app-data:

@@ -7,6 +7,8 @@ dist/
 build/
 .venv/
 .venv-paddle/
+.venv-doctr/
+.venv-surya/
 venv/
 .env
 .mypy_cache/
@@ -18,6 +20,7 @@ venv/
 data/funsd/
 data/raw/
 data/docile/
+kaggle_upload/
 artifacts/**
 !artifacts/.gitkeep
 *.pt
@@ -32,9 +35,16 @@ checkpoints/
 .DS_Store
 Thumbs.db
 
-# Node (monitor app)
+# Uploads, the local app database, and rendered pages
+data/uploads/
+data/processed/
+data/app/
+
+# Node
 apps/monitor/node_modules/
 apps/monitor/dist/
+apps/web/node_modules/
+apps/web/dist/
 
 # Logs
 *.log

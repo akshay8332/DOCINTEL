@@ -519,8 +519,8 @@ def audit_documents(docs, model, processor, device: str, max_length: int) -> lis
 
 
 def main() -> int:
+    from docintel.data.docile import load_docile_pages
     from multilabel.checkpoint import assert_diagnostic_destination, assert_output_allowed
-    from multilabel.data import prepare_documents
     from multilabel.evaluate import load_multilabel
 
     parser = argparse.ArgumentParser()
@@ -528,6 +528,12 @@ def main() -> int:
     parser.add_argument("--data-dir", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=100)
     parser.add_argument("--max-length", type=int, default=512)
+    parser.add_argument(
+        "--image-dir",
+        type=Path,
+        default=None,
+        help="Existing page images. The default renders beside the output file.",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -543,7 +549,9 @@ def main() -> int:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Reading checkpoint {args.checkpoint}", flush=True)
     model, processor, _payload = load_multilabel(args.checkpoint, device)
-    docs = prepare_documents(args.data_dir, "val", args.limit)
+    image_dir = args.image_dir or (args.output.parent / "page_images")
+    docs = load_docile_pages(args.data_dir, "val", limit=args.limit, image_dir=image_dir)
+    print(f"Loaded pages {len(docs)}", flush=True)
     cases = audit_documents(docs, model, processor, device, args.max_length)
     documents = len({doc.document_id.rsplit("-p", 1)[0] for doc in docs})
     report = build_report(

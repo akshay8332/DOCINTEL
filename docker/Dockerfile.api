@@ -1,15 +1,35 @@
-# Sketch — Stage 3 API image (not production-hardened yet)
-FROM python:3.11-slim
+# CPU API image. Epoch-3 is mounted at run time and is not copied into the image.
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
 COPY pyproject.toml README.md ./
 COPY packages ./packages
-COPY configs ./configs
+COPY experiments ./experiments
+COPY scripts ./scripts
 
-RUN pip install --no-cache-dir -e ".[dev]"
+# Install the CPU wheels first. A later pip install must not replace them with a CUDA build.
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch torchvision \
+    && pip install --no-cache-dir -e . \
+    && pip install --no-cache-dir "python-doctr>=0.9,<1.1" \
+    && python -c "import torch; assert torch.version.cuda is None, 'CPU torch was replaced'"
 
-ENV DOCINTEL_API_HOST=0.0.0.0
-ENV DOCINTEL_API_PORT=8080
+ENV DOCINTEL_API_HOST=0.0.0.0 \
+    DOCINTEL_API_PORT=8080 \
+    DOCINTEL_DEVICE=cpu \
+    DOCINTEL_DOCTR_PYTHON=/usr/local/bin/python \
+    DOCINTEL_INFERENCE_MODE=auto \
+    DOCINTEL_FROZEN_CHECKPOINT=epoch-3 \
+    PYTHONUNBUFFERED=1
+
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"
 
 CMD ["uvicorn", "docintel.api.main:app", "--host", "0.0.0.0", "--port", "8080"]
