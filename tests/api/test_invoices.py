@@ -11,9 +11,16 @@ pytest.importorskip("sqlalchemy")
 
 from docintel.api.main import create_app
 from docintel.schemas.config import AppSettings
+from docintel.services.invoice_service import safe_filename
 from fastapi.testclient import TestClient
 
 PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+
+
+def test_safe_filename_strips_windows_and_posix_paths():
+    assert safe_filename(r"..\secret\invoice.pdf") == "invoice.pdf"
+    assert safe_filename("../secret/invoice.pdf") == "invoice.pdf"
+    assert safe_filename("invoice.pdf") == "invoice.pdf"
 
 
 def _app(tmp_path: Path, mode: str = "mock"):

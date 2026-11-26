@@ -26,7 +26,9 @@ _NAME = re.compile(r"[^A-Za-z0-9._ -]+")
 
 
 def safe_filename(name: str) -> str:
-    base = Path(name or "invoice.pdf").name.replace("\\", "_").replace("/", "_")
+    # Strip directory parts for both Windows and POSIX separators. Path.name alone
+    # keeps backslashes on Linux, which would leave names like "_secret_invoice.pdf".
+    base = (name or "invoice.pdf").replace("\\", "/").rsplit("/", 1)[-1]
     cleaned = _NAME.sub("_", base).strip(" .") or "invoice.pdf"
     if not cleaned.lower().endswith(".pdf"):
         cleaned += ".pdf"
