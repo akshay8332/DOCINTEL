@@ -1,0 +1,66 @@
+name: Deploy API image to ECR
+
+# Manual only. This builds the CPU API image and pushes it to the ECR repo you
+# already created. It does not create AWS resources and does not start App Runner.
+# App Runner / Express Mode still bill while the service is running.
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag to push
+        required: true
+        default: latest
+
+concurrency:
+  group: deploy-ecr
+  cancel-in-progress: false
+
+jobs:
+  push:
+    name: Build and push API image
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      IMAGE_TAG: ${{ inputs.image_tag }}
+    steps:
+      - name: Require deploy secrets
+        run: |
+          test -n "$AWS_REGION" || (echo "Set repository secret AWS_REGION" && exit 1)
+          test -n "$ECR_REPOSITORY" || (echo "Set repository secret ECR_REPOSITORY" && exit 1)
+          test -n "${{ secrets.AWS_ACCESS_KEY_ID }}" || (echo "Set repository secret AWS_ACCESS_KEY_ID" && exit 1)
+          test -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" || (echo "Set repository secret AWS_SECRET_ACCESS_KEY" && exit 1)
+
+      - uses: actions/checkout@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push
+        env:
+          REGISTRY: ${{ steps.login.outputs.registry }}
+        run: |
+          IMAGE="$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "Building $IMAGE"
+          docker build -f docker/Dockerfile.api -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "Pushed $IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        run: |
+          echo "Image pushed."
+          echo "Next: in App Runner Express Mode, choose this ECR image."
+          echo "Remember: App Runner bills for vCPU and memory while the service is up."

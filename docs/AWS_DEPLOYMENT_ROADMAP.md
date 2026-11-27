@@ -53,13 +53,16 @@ In the console, open S3, ECR, App Runner, and CloudWatch. If a service says it r
 
 Purpose: one public API and a static site, only if Step 4 allows the services.
 
+Hands-on steps: `docs/AWS_FIRST_DEPLOY.md`
+
 Order:
 
-1. S3 bucket for PDFs, private, block public access. Application access through an IAM role.
-2. ECR repository and one image tag.
-3. One CPU API service, minimum size, no GPU.
-4. S3 or the same pattern for the Vue build, with the API URL baked in at build time.
-5. CloudWatch logs, retention 7 days.
+1. S3 bucket for PDFs and `models/epoch-3/`, private, block public access.
+2. ECR repository; push the API image with Actions workflow **Deploy API image to ECR**.
+3. One CPU App Runner service from that ECR image (Express Mode is fine). No GPU.
+4. App Runner instance role reads the S3 checkpoint prefix; set `DOCINTEL_S3_CHECKPOINT_URI`.
+5. S3 or the same pattern for the Vue build later, with the API URL baked in at build time.
+6. CloudWatch logs, retention 7 days.
 
 SQLite can stay on the task for this slice if the service is a single copy. Moving to RDS is Step 7 and has its own cost note.
 
